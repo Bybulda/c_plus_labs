@@ -21,8 +21,8 @@ int main()
 
     constructed_logger_2
         ->log("123 kek lol", logger::severity::error);
-    logger *constr_3 = builder->conduct("config.txt");
-    constr_3->log("azazazaza", logger::severity::critical);
+    logger *constr_3 = builder->conduct("config.json");
+    constr_3->log("azazazaza", logger::severity::warning);
 
     delete constr_3;
     delete constructed_logger_2;

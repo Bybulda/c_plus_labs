@@ -12,3 +12,5 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean:
 	rm -f $(EXECUTABLE)
+
+.PRECIOUS: %.o
