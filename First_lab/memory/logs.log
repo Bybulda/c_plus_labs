@@ -1,0 +1,8 @@
+[DEBUG][8/4/2023 15:13:15] Allocated size block: 32
+[DEBUG][8/4/2023 15:13:15] Object have such data in it: 
+ 10 0 0 0 20 0 0 0 110 115 105 111 110 115 92 103 105 116 92 100 105 115 116 92 97 115 107 112 97 115 115
+[DEBUG][8/4/2023 15:13:15] Deallocated block size: 32 of block (0x1b437ae1ed8)
+[DEBUG][8/4/2023 15:13:15] Allocated size block: 3
+[DEBUG][8/4/2023 15:13:15] Object have such data in it: 
+ 104 117
+[DEBUG][8/4/2023 15:13:15] Deallocated block size: 3 of block (0x1b437ae2038)
