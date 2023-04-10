@@ -1,6 +1,7 @@
 #include "alloc_types.h"
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 
 alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory::method mode){
@@ -132,7 +133,7 @@ void* alloc_types::_get_memory(size_t const &size, void** previous, void** next)
 void* alloc_types::_method_first(size_t const &size, void** previous, void** next){
     void* current = _get_next_block();
     while(current != nullptr){
-        if (_get_block_size(current) >= size){
+        if (this->_get_block_size(current) >= size){
             *next = _get_next_block(current);
             return current;
         }
@@ -141,7 +142,36 @@ void* alloc_types::_method_first(size_t const &size, void** previous, void** nex
     return nullptr;
 }
 
-void* alloc_types::_method_best(size_t const &size, void** previous, void** next);
+void* alloc_types::_method_best(size_t const &size, void** previous, void** next){
+    void* current = this->_get_next_block();
+    void* best_block = current;
+    size_t min_divide = INT64_MAX, curr_block_size = 0;
+    while(current != nullptr){
+        curr_block_size = this->_get_block_size(current);
+        if (curr_block_size == size)
+        {
+            return current;
+        }
+        else if (curr_block_size >= size && ((curr_block_size - size) < min_divide))
+        {
+            min_divide = curr_block_size - size;
+            best_block = current;
+        }
+        
+        current = _get_next_block(current);
+    }
+    return best_block;
+}
 
-void* alloc_types::_method_worst(size_t const &size, void** previous, void** next);
+void* alloc_types::_method_worst(size_t const &size, void** previous, void** next){
+    void* current = this->_get_next_block();
+    void* worst_block = current;
+    while(current != nullptr){
+        if (this->_get_block_size(current) >= size && (this->_get_block_size(current) > this->_get_block_size(worst_block))){
+            worst_block = current;
+        }
+        current = _get_next_block(current);
+    }
+    return worst_block;
+}
 // MEMORY_METHOD END

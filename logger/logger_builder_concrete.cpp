@@ -29,5 +29,6 @@ logger *logger_builder_concrete::conduct(std::string const &path)
     for(auto& el : j.items()){
         this->add_stream(el.key(), lev[el.value()]);
     }
+    file.close();
     return new logger_concrete(_construction_info);
 }
