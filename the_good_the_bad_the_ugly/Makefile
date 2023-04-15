@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=
-LDFLAGS=-lm -std=c++20
+LDFLAGS=-lm  -w -std=c++20
 SOURCES=../logger/logger_builder.cpp ../logger/logger_builder_concrete.cpp ../logger/logger.cpp ../logger/logger_concrete.cpp memory.cpp alloc_types.cpp main.cpp
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=main

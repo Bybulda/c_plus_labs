@@ -2,7 +2,7 @@
 #include "logger_concrete.h"
 #include <map>
 #include <fstream>
-#include <C:\Users\smirn\github\C_plus_labs\include\single_include\nlohmann\json.hpp>
+#include "../include/single_include/nlohmann/json.hpp"
 
 logger_builder *logger_builder_concrete::add_stream(std::string const &path, logger::severity severity) {
     _construction_info[path] = severity;

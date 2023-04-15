@@ -10,7 +10,7 @@ class alloc_types: public memory{
         
         ~alloc_types();
         
-        void* allocate(size_t target_size) const override;
+        void* allocate(size_t target_size) override;
 
         void deallocate(void const * const target_to_dealloc) const override;
 
@@ -50,8 +50,8 @@ class alloc_types: public memory{
 
         void* _method_worst(size_t const &size, void** previous, void** next);
 
-    // private:
-    //     void _pull_together();
+    private:
+        void _pull_together();
 };
 
 #endif
