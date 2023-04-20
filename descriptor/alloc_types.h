@@ -1,6 +1,7 @@
 #ifndef ALLOC_TYPES
 #define ALLOC_TYPES
-
+#define FIRST_AFTER_SERVICE_ (sizeof(logger*) + sizeof(memory*) + sizeof(void*) + sizeof(size_t))
+#define AFTER_SERVICE_BLOCK_ (sizeof(void*) + sizeof(size_t))
 #include "memory.h"
 
 class alloc_types final: public memory{
@@ -8,13 +9,14 @@ class alloc_types final: public memory{
 
         explicit alloc_types(size_t const& size, memory* alloc=nullptr, logger* logg=nullptr, memory::method mode=memory::method::first);
         
-        ~alloc_types() override;
+        ~alloc_types() final;
         
         void* allocate(size_t target_size) override;
 
-        void deallocate(void const * target_to_dealloc) const override;
+        void deallocate(void const *target_to_dealloc) const override;
 
-
+        void* get_mem(size_t size);
+        
         void set_logger(logger* &lg) noexcept override;
     
         template<typename T>
@@ -26,7 +28,7 @@ class alloc_types final: public memory{
         memory::method _method;
 
     private:
-        logger* _get_logger() const;
+        logger * _get_logger() const;
 
         void _log_with_guard(const std::string& str, logger::severity level) const noexcept override;
 
@@ -39,18 +41,17 @@ class alloc_types final: public memory{
 
         void* _key_memory(void* try_mem) const noexcept;
 
+        memory* _get_allocator() const noexcept;
+
         
     private:
-        void* _get_memory(size_t const &size, void** previous, void** next);
+        void* _get_memory(size_t const &size);
 
-        void* _method_first(size_t const &size, void** previous, void** next);
+        void* _method_first(size_t const &size);
 
-        void* _method_best(size_t const &size, void** previous, void** next);
+        void* _method_best(size_t const &size);
 
-        void* _method_worst(size_t const &size, void** previous, void** next);
-
-    private:
-        void _pull_together() const;
+        void* _method_worst(size_t const &size);
 };
 
 #endif

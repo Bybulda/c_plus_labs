@@ -45,7 +45,7 @@ alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory
 alloc_types::~alloc_types(){
     memory* alc = *reinterpret_cast<memory**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*) + sizeof(logger*));
 //    this->_log_with_guard(this->_return_memory_condition_info(_memory), logger::severity::information);
-    this->_log_with_guard("Allocator was destroyed", logger::severity::warning);
+
     void* curr = this->_get_next_block();
     while(curr != nullptr){
         this->_log_with_guard("Current block has such size " + this->to_str(this->_get_block_size(curr)) + " and such ptr " + this->to_str(curr), logger::severity::information);
@@ -57,15 +57,7 @@ alloc_types::~alloc_types(){
     else{
         ::operator delete(_memory);
     }
-}
-
-void* alloc_types::get_mem(size_t size){
-    std::cout << _get_block_size(_memory) << "\n";
-    std::cout << to_str(_get_logger()) << "\n";
-    std::cout << to_str(_get_next_block()) << "\n";
-    std::cout << to_str(_memory) << "\n";
-    return nullptr;
-    
+    this->_log_with_guard("Allocator was destroyed", logger::severity::warning);
 }
 
 
@@ -112,8 +104,22 @@ void* alloc_types::allocate(size_t target_size){
     return reinterpret_cast<void*>(reinterpret_cast<unsigned char*>(our_block) + sizeof(size_t) + sizeof(void*));
 }
 
-void alloc_types::_pull_together(){
-    return;
+void alloc_types::_pull_together() const{
+    void* curr = this->_get_next_block();
+    void *next = curr != nullptr ? this->_get_next_block(curr) : nullptr;
+    while(next != nullptr){
+        size_t size_curr = this->_get_block_size(curr), size_next = this->_get_block_size(next);
+        if(reinterpret_cast<unsigned char*>(curr) + sizeof(void*) + sizeof(size_t) +
+        size_curr == next){
+            *reinterpret_cast<size_t*>(curr) = size_curr + size_next + sizeof(void*) + sizeof(size_t);
+            *reinterpret_cast<void**>(reinterpret_cast<unsigned char*>(curr) + sizeof(void*)) = this->_get_next_block(next);
+            this->_log_with_guard("Block was pulled with right one and had such size " +
+            this->to_str(size_curr) + " and now such size " +
+            this->to_str(size_curr + size_next + sizeof(void*) + sizeof(size_t)), logger::severity::information);
+        }
+        curr = next;
+        next = this->_get_next_block(next);
+    }
 }
 
 
@@ -171,6 +177,7 @@ void alloc_types::deallocate(void const * const target_to_dealloc) const {
         first = this->_get_next_block(first);
     }
     this->_log_with_guard("Block was deallocated, it had such adress " + this->to_str(ptr) + " now it have such adress " + this->to_str(info), logger::severity::information);
+    this->_pull_together();
 }
 // MEMORY CALLABLE END
 

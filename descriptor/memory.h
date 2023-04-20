@@ -17,7 +17,7 @@ class memory{
 
         virtual void * allocate(size_t target_size) = 0;
         
-        virtual void deallocate(void const * target_to_dealloc) const = 0;
+        virtual void deallocate(void const *target_to_dealloc) const = 0;
 
         memory() = default;
 
@@ -27,7 +27,7 @@ class memory{
 
         void* operator+=(size_t const&);
 
-        void operator-=(void const * object);
+        void operator-=(void const * object) const;
 
         virtual void set_logger(logger* &lg) noexcept = 0;
     
