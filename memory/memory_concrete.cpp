@@ -4,20 +4,18 @@
 #include <map>
 
 
-memory_concrete::~memory_concrete(){
-
-}
+memory_concrete::~memory_concrete()= default;
 
 
-memory_concrete::memory_concrete(){
-    loggerr = nullptr;
+memory_concrete::memory_concrete(logger* lg){
+    loggerr = lg;
 }
 
 void memory_concrete::set_logger(logger* &lg) noexcept{
     loggerr = lg;
 }
 
-void memory_concrete::log_with_guard(const std::string& str, logger::severity level)const{
+void memory_concrete::_log_with_guard(const std::string& str, logger::severity level)const{
     if (loggerr != nullptr){
         loggerr->log(str, level);
     }
@@ -33,11 +31,11 @@ std::string memory_concrete::to_str(T const & object) const noexcept
 }
 
 
-void * memory_concrete::allocate(size_t target_size) const{
+void * memory_concrete::allocate(size_t target_size){
     void* new_mem = ::operator new(target_size + sizeof(size_t));
     
     *reinterpret_cast<size_t*>(new_mem) = target_size;
-    log_with_guard("Allocated size block: " + to_str(target_size), logger::severity::debug);
+    _log_with_guard("Allocated size block: " + to_str(target_size), logger::severity::debug);
     new_mem = reinterpret_cast<void*>(reinterpret_cast<size_t*>(new_mem) + 1);
  
     return new_mem;
@@ -55,8 +53,8 @@ void memory_concrete::deallocate(void const * const target_to_dealloc) const{
         objects += " ";
         objects += to_str(static_cast<int>(trial[i]));
     }
-    log_with_guard(objects, logger::severity::debug);
-    log_with_guard("Deallocated block size: " + to_str(size_deallocated) + " of block (" + to_str(ptr) + ")", logger::severity::debug);
+    _log_with_guard(objects, logger::severity::debug);
+    _log_with_guard("Deallocated block size: " + to_str(size_deallocated) + " of block (" + to_str(ptr) + ")", logger::severity::debug);
     ::operator delete(reinterpret_cast<void*>(reinterpret_cast<size_t*>(ptr) - 1));
 }
 

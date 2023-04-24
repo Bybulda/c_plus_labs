@@ -4,7 +4,7 @@
 
 
 
-alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory::method mode){
+alloc_types_list::alloc_types_list(size_t const& size, memory* alloc, logger* logg, memory::method mode){
     
     if (alloc == nullptr){
         _memory = ::operator new(size);
@@ -32,7 +32,7 @@ alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory
 
     *reinterpret_cast<void**>(free_block + 1) = nullptr;
     this->_log_with_guard("Allocator was created with size " + to_str(size) + " on block " + to_str(_memory), logger::severity::information);
-    this->_log_with_guard("Size of mem " + to_str(*with_size) + " next block " + to_str(*ptr_next) + 
+    this->_log_with_guard("Size of mem " + to_str(*with_size) + " next block " + to_str(*ptr_next) +
     " logger ptr " + to_str(ptr_logger) + " mem allocator " + to_str(*mem) + "\n first block len " + to_str(*free_block), logger::severity::information);
     this->_log_with_guard("Ptr of next mem reffering to _memory block " + 
     to_str(reinterpret_cast<unsigned char*>(*ptr_next) - reinterpret_cast<unsigned char*>(_memory)), logger::severity::critical);
@@ -42,7 +42,7 @@ alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory
 
 }
 
-alloc_types::~alloc_types(){
+alloc_types_list::~alloc_types_list(){
     memory* alc = *reinterpret_cast<memory**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*) + sizeof(logger*));
 //    this->_log_with_guard(this->_return_memory_condition_info(_memory), logger::severity::information);
 
@@ -62,7 +62,7 @@ alloc_types::~alloc_types(){
 
 
 // MEMORY CALLABLE
-void* alloc_types::allocate(size_t target_size){
+void* alloc_types_list::allocate(size_t target_size){
     void* previous = nullptr;
     void* next = nullptr;
     size_t size = 0, another = 0;
@@ -104,7 +104,7 @@ void* alloc_types::allocate(size_t target_size){
     return reinterpret_cast<void*>(reinterpret_cast<unsigned char*>(our_block) + sizeof(size_t) + sizeof(void*));
 }
 
-void alloc_types::_pull_together() const{
+void alloc_types_list::_pull_together() const{
     void* curr = this->_get_next_block();
     void *next = curr != nullptr ? this->_get_next_block(curr) : nullptr;
     while(next != nullptr){
@@ -123,9 +123,9 @@ void alloc_types::_pull_together() const{
 }
 
 
-void alloc_types::deallocate(void const * const target_to_dealloc) const {
+void alloc_types_list::deallocate(void const * const target_to_dealloc) const {
     void *ptr = const_cast<void*>(target_to_dealloc);
-    this->_log_with_guard(this->_return_memory_condition_info(ptr), logger::severity::critical);
+//    this->_log_with_guard(this->_return_memory_condition_info(ptr), logger::severity::critical);
     void *curr = this->_get_next_block();
     void* left = nullptr, *right = nullptr, *info = nullptr;
     while(curr != nullptr){
@@ -182,15 +182,15 @@ void alloc_types::deallocate(void const * const target_to_dealloc) const {
 // MEMORY CALLABLE END
 
 // Logger methods
-void alloc_types::set_logger(logger* &lg) noexcept{
+void alloc_types_list::set_logger(logger* &lg) noexcept{
     *reinterpret_cast<logger**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*)) = lg;
 }
 
-logger* alloc_types::_get_logger() const{
+logger* alloc_types_list::_get_logger() const{
     return *reinterpret_cast<logger**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*));
 }
 
-std::string alloc_types::_return_memory_condition_info(void* mem_block) const noexcept{
+std::string alloc_types_list::_return_memory_condition_info(void* mem_block) const noexcept{
     size_t size = *reinterpret_cast<size_t*>(reinterpret_cast<unsigned char*>(reinterpret_cast<unsigned char *>(mem_block) - sizeof(size_t) - sizeof(void*)));
     std::string info = "Memory get this kind of information, like size " + this->to_str(size) + " with such data in it:\n"; 
     for(int i = 0; i < size; i++){
@@ -199,7 +199,7 @@ std::string alloc_types::_return_memory_condition_info(void* mem_block) const no
     return info;
 }
 
-void alloc_types::_log_with_guard(const std::string& str, logger::severity level) const noexcept{
+void alloc_types_list::_log_with_guard(const std::string& str, logger::severity level) const noexcept{
     logger* logg = _get_logger();
     if (logg != nullptr){
         logg->log(str, level);
@@ -207,7 +207,7 @@ void alloc_types::_log_with_guard(const std::string& str, logger::severity level
 }
 
 template<typename T>
-std::string alloc_types::to_str(T const &object) const noexcept{
+std::string alloc_types_list::to_str(T const &object) const noexcept{
     std::stringstream stream;
     stream << object;
     stream << std::hex;
@@ -218,21 +218,21 @@ std::string alloc_types::to_str(T const &object) const noexcept{
 
 
 // Service information methods
-size_t alloc_types::_get_block_size(void* current) const noexcept{
-    return current == nullptr ? 0 : *reinterpret_cast<size_t*>(this->_key_memory(current));
+size_t alloc_types_list::_get_block_size(void* current) const noexcept{
+    return  *reinterpret_cast<size_t*>(this->_key_memory(current));
 }
 
-void* alloc_types::_get_next_block(void* current) const noexcept{
+void* alloc_types_list::_get_next_block(void* current) const noexcept{
     return *reinterpret_cast<void**>(reinterpret_cast<size_t*>(this->_key_memory(current)) + 1);
 }
 
-void* alloc_types::_key_memory(void* try_mem) const noexcept{
+void* alloc_types_list::_key_memory(void* try_mem) const noexcept{
     return try_mem == nullptr ? _memory : try_mem;
 }
 // SERVICE_END
 
 // MEMORY_METHOD BLOCK
-void* alloc_types::_get_memory(size_t const &size, void** previous, void** next){
+void* alloc_types_list::_get_memory(size_t const &size, void** previous, void** next){
     switch (_method)
     {
     case memory::method::first: return _method_first(size, previous, next);
@@ -246,7 +246,7 @@ void* alloc_types::_get_memory(size_t const &size, void** previous, void** next)
     return nullptr;
 }
 
-void* alloc_types::_method_first(size_t const &size, void** previous, void** next){
+void* alloc_types_list::_method_first(size_t const &size, void** previous, void** next){
     void* current = this->_get_next_block();
     *previous = *next = nullptr;
     while(current != nullptr){
@@ -262,7 +262,7 @@ void* alloc_types::_method_first(size_t const &size, void** previous, void** nex
     return nullptr;
 }
 
-void* alloc_types::_method_best(size_t const &size, void** previous, void** next){
+void* alloc_types_list::_method_best(size_t const &size, void** previous, void** next){
     void* current = this->_get_next_block();
     void* best_block = current;
     *previous = *next = nullptr;
@@ -289,7 +289,7 @@ void* alloc_types::_method_best(size_t const &size, void** previous, void** next
     return best_block;
 }
 
-void* alloc_types::_method_worst(size_t const &size, void** previous, void** next){
+void* alloc_types_list::_method_worst(size_t const &size, void** previous, void** next){
     void* current = this->_get_next_block();
     void* worst_block = nullptr;
     *previous = *next = nullptr;

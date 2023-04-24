@@ -2,21 +2,19 @@
 #define ALLOC_TYPES
 #define FIRST_AFTER_SERVICE_ (sizeof(logger*) + sizeof(memory*) + sizeof(void*) + sizeof(size_t))
 #define AFTER_SERVICE_BLOCK_ (sizeof(void*) + sizeof(size_t))
-#include "memory.h"
+#include "../memory/memory.h"
 
-class alloc_types final: public memory{
+class alloc_types_descriptor final: public memory{
     public:
 
-        explicit alloc_types(size_t const& size, memory* alloc=nullptr, logger* logg=nullptr, memory::method mode=memory::method::first);
+        explicit alloc_types_descriptor(size_t const& size, memory* alloc=nullptr, logger* logg=nullptr, memory::method mode=memory::method::first);
         
-        ~alloc_types() final;
+        ~alloc_types_descriptor() final;
         
         void* allocate(size_t target_size) override;
 
         void deallocate(void const *target_to_dealloc) const override;
 
-        void* get_mem(size_t size);
-        
         void set_logger(logger* &lg) noexcept override;
     
         template<typename T>

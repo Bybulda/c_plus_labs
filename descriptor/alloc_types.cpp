@@ -4,7 +4,7 @@
 
 
 
-alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory::method mode){
+alloc_types_descriptor::alloc_types_descriptor(size_t const& size, memory* alloc, logger* logg, memory::method mode){
     
     if (alloc == nullptr){
         _memory = ::operator new(size + sizeof(size_t) + sizeof(void*) + sizeof(memory*) + sizeof(logger*));
@@ -28,7 +28,7 @@ alloc_types::alloc_types(size_t const& size, memory* alloc, logger* logg, memory
     this->_log_with_guard("Allocator was created with size (" + this->to_str(size) + ") bytes", logger::severity::information);
 }
 
-alloc_types::~alloc_types(){
+alloc_types_descriptor::~alloc_types_descriptor(){
     memory* alc = this->_get_allocator();
 //    this->_log_with_guard(this->_return_memory_condition_info(_memory), logger::severity::information);
     this->_log_with_guard("Allocator was destroyed", logger::severity::warning);
@@ -42,13 +42,14 @@ alloc_types::~alloc_types(){
 
 
 // MEMORY CALLABLE
-memory* alloc_types::_get_allocator() const noexcept{
+memory* alloc_types_descriptor::_get_allocator() const noexcept{
     return *reinterpret_cast<memory**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*) + sizeof(logger*));
 }
 
-void* alloc_types::allocate(size_t target_size){
+void* alloc_types_descriptor::allocate(size_t target_size){
     memory* alc = this->_get_allocator();
-    void* block = alc == nullptr ? this->_get_memory(target_size) : alc->allocate(target_size);
+//    void* block = alc == nullptr ? this->_get_memory(target_size) : alc->allocate(target_size);
+    void* block = this->_get_memory(target_size);
     if (block == nullptr){
         this->_log_with_guard("Block of size " + this->to_str(target_size) +" wasn't allocated", logger::severity::critical);
     }
@@ -58,11 +59,12 @@ void* alloc_types::allocate(size_t target_size){
     return block;
 }
 
-void alloc_types::deallocate(void const * target_to_dealloc) const {
+void alloc_types_descriptor::deallocate(void const * target_to_dealloc) const {
     if (target_to_dealloc == nullptr){
         return;
     }
     memory* alc = this->_get_allocator();
+    this->_log_with_guard(this->_return_memory_condition_info(const_cast<void*>(target_to_dealloc)), logger::severity::information);
 
     if (alc == nullptr){
         void* our_block = reinterpret_cast<unsigned char*>(const_cast<void*>(target_to_dealloc)) - sizeof(size_t) - (sizeof(void*) << 1);
@@ -79,24 +81,26 @@ void alloc_types::deallocate(void const * target_to_dealloc) const {
             *reinterpret_cast<void**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t)) = next;
         }
     }
-    else{
-        alc->deallocate(target_to_dealloc);
-    }
+//    else{
+////        alc->deallocate(target_to_dealloc);
+//
+//    }
+
     this->_log_with_guard("Block " + this->to_str(target_to_dealloc) + " was deallocated", logger::severity::information);
 }
 // MEMORY CALLABLE END
 
 // Logger methods
-void alloc_types::set_logger(logger* &lg) noexcept{
+void alloc_types_descriptor::set_logger(logger* &lg) noexcept{
     *reinterpret_cast<logger**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*)) = lg;
 }
 
-logger* alloc_types::_get_logger() const{
+logger* alloc_types_descriptor::_get_logger() const{
     return *reinterpret_cast<logger**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*));
 }
 
-std::string alloc_types::_return_memory_condition_info(void* mem_block) const noexcept{
-    size_t size = *reinterpret_cast<size_t*>(reinterpret_cast<unsigned char*>(reinterpret_cast<unsigned char *>(mem_block) - sizeof(size_t) - sizeof(void*)));
+std::string alloc_types_descriptor::_return_memory_condition_info(void* mem_block) const noexcept{
+    size_t size = *reinterpret_cast<size_t*>(reinterpret_cast<unsigned char*>(reinterpret_cast<unsigned char *>(mem_block) - sizeof(size_t) - sizeof(void*) - sizeof(void*)));
     std::string info = "Memory get this kind of information, like size " + this->to_str(size) + " with such data in it:\n"; 
     for(int i = 0; i < size; i++){
         info += this->to_str(static_cast<int>(*(reinterpret_cast<unsigned char*>(mem_block) + i))) + " ";
@@ -104,7 +108,7 @@ std::string alloc_types::_return_memory_condition_info(void* mem_block) const no
     return info;
 }
 
-void alloc_types::_log_with_guard(const std::string& str, logger::severity level) const noexcept{
+void alloc_types_descriptor::_log_with_guard(const std::string& str, logger::severity level) const noexcept{
     logger* logg = _get_logger();
     if (logg != nullptr){
         logg->log(str, level);
@@ -112,7 +116,7 @@ void alloc_types::_log_with_guard(const std::string& str, logger::severity level
 }
 
 template<typename T>
-std::string alloc_types::to_str(T const &object) const noexcept{
+std::string alloc_types_descriptor::to_str(T const &object) const noexcept{
     std::stringstream stream;
     stream << object;
     stream << std::hex;
@@ -123,21 +127,21 @@ std::string alloc_types::to_str(T const &object) const noexcept{
 
 
 // Service information methods
-size_t alloc_types::_get_block_size(void* current) const noexcept{
+size_t alloc_types_descriptor::_get_block_size(void* current) const noexcept{
     return *reinterpret_cast<size_t*>(this->_key_memory(current));
 }
 
-void* alloc_types::_get_next_block(void* current) const noexcept{
+void* alloc_types_descriptor::_get_next_block(void* current) const noexcept{
     return *reinterpret_cast<void**>(reinterpret_cast<size_t*>(this->_key_memory(current)) + 1);
 }
 
-void* alloc_types::_key_memory(void* try_mem) const noexcept{
+void* alloc_types_descriptor::_key_memory(void* try_mem) const noexcept{
     return try_mem == nullptr ? _memory : try_mem;
 }
 // SERVICE_END
 
 // MEMORY_METHOD BLOCK
-void* alloc_types::_get_memory(size_t const &size){
+void* alloc_types_descriptor::_get_memory(size_t const &size){
     switch (_method)
     {
         case memory::method::first: return _method_first(size);
@@ -151,7 +155,7 @@ void* alloc_types::_get_memory(size_t const &size){
     return nullptr;
 }
 
-void* alloc_types::_method_first(size_t const &size){
+void* alloc_types_descriptor::_method_first(size_t const &size){
    void* curr = this->_get_next_block(), *block = nullptr;
    if(curr == nullptr){
        if (size + sizeof(size_t) + (sizeof(void*) << 1) <= this->_get_block_size()){
@@ -201,11 +205,11 @@ void* alloc_types::_method_first(size_t const &size){
    return nullptr;
 }
 
-void* alloc_types::_method_best(size_t const &size){
+void* alloc_types_descriptor::_method_best(size_t const &size){
     void* curr = this->_get_next_block(), *block = nullptr, *previous = nullptr, *next_one = nullptr;
     if(curr == nullptr){
         if (size + sizeof(size_t) + (sizeof(void*) << 1) <= this->_get_block_size()){
-            block = *reinterpret_cast<void**>(reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*) + sizeof(logger*) + sizeof(memory*));
+            block = (reinterpret_cast<unsigned char*>(_memory) + sizeof(size_t) + sizeof(void*) + sizeof(logger*) + sizeof(memory*));
             auto* now = reinterpret_cast<size_t*>(block);
             *now = size;
 
@@ -221,7 +225,7 @@ void* alloc_types::_method_best(size_t const &size){
             auto * left = reinterpret_cast<unsigned char*>(curr) + sizeof(size_t) + (sizeof(void*) << 1) + this->_get_block_size(curr);
             auto * right = next == nullptr ? reinterpret_cast<unsigned char*>(_memory) + FIRST_AFTER_SERVICE_ + this->_get_block_size() : reinterpret_cast<unsigned char*>(next);
             size_t dist = right - left;
-            if(size + sizeof(size_t) + (sizeof(void*) << 1) <= size && dist < best_size){
+            if(size + sizeof(size_t) + (sizeof(void*) << 1) <= dist && dist < best_size){
                 best_size = dist;
                 block = left;
                 previous = curr;
@@ -243,7 +247,7 @@ void* alloc_types::_method_best(size_t const &size){
     return nullptr;
 }
 
-void* alloc_types::_method_worst(size_t const &size){
+void* alloc_types_descriptor::_method_worst(size_t const &size){
     void* curr = this->_get_next_block(), *block = nullptr, *previous = nullptr, *next_one = nullptr;
     if(curr == nullptr){
         if (size + sizeof(size_t) + (sizeof(void*) << 1) <= this->_get_block_size()){
@@ -263,7 +267,7 @@ void* alloc_types::_method_worst(size_t const &size){
             auto * left = reinterpret_cast<unsigned char*>(curr) + sizeof(size_t) + (sizeof(void*) << 1) + this->_get_block_size(curr);
             auto * right = next == nullptr ? reinterpret_cast<unsigned char*>(_memory) + FIRST_AFTER_SERVICE_ + this->_get_block_size() : reinterpret_cast<unsigned char*>(next);
             size_t dist = right - left;
-            if(size + sizeof(size_t) + (sizeof(void*) << 1) <= size && dist > best_size){
+            if(size + sizeof(size_t) + (sizeof(void*) << 1) <= dist && dist > best_size){
                 best_size = dist;
                 block = left;
                 previous = curr;

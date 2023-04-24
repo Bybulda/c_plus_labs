@@ -6,17 +6,17 @@
 class memory_concrete: public memory{
 private:
     logger* loggerr;
-    void log_with_guard(const std::string& str, logger::severity level) const;
+    void _log_with_guard(const std::string& str, logger::severity level) const override;
 public:
     ~memory_concrete();
     
-    memory_concrete();
+    memory_concrete(logger* = nullptr);
     
     memory_concrete(memory_concrete const&) = delete;
 
     memory_concrete& operator=(memory_concrete const&) = delete;
 
-    void * allocate(size_t target_size) const override;
+    void * allocate(size_t target_size) override;
 
     void set_logger(logger* &lg) noexcept override;
     

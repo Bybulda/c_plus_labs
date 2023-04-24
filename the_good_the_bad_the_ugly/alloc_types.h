@@ -1,14 +1,14 @@
-#ifndef ALLOC_TYPES
-#define ALLOC_TYPES
+#ifndef ALLOC_TYPES_LIST
+#define ALLOC_TYPES_LIST
 
-#include "memory.h"
+#include "../memory/memory.h"
 
-class alloc_types final: public memory{
+class alloc_types_list final: public memory{
     public:
 
-        explicit alloc_types(size_t const& size, memory* alloc=nullptr, logger* logg=nullptr, memory::method mode=memory::method::first);
+        explicit alloc_types_list(size_t const& size, memory* alloc=nullptr, logger* logg=nullptr, memory::method mode=memory::method::first);
         
-        ~alloc_types() override;
+        ~alloc_types_list() override;
         
         void* allocate(size_t target_size) override;
 

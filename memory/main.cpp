@@ -3,6 +3,7 @@
 #include <iostream>
 
 
+
 int main(){
     memory *t = new memory_concrete();
     logger_builder* build = new logger_builder_concrete();

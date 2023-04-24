@@ -77,7 +77,7 @@ logger const *logger_concrete::log(const std::string &to_log, logger::severity s
             std::cout << "[" 
             << severity_mode.at(static_cast<int>(severity)) << "]" 
             << "[" << (now->tm_mday) << "/" << (now->tm_mon + 1) << '/' 
-            << (now->tm_year + 1900) << ' ' 
+            << (now->tm_year + 1900) << ' '
             << (now->tm_hour) << ":" << (now->tm_min) << ":" << (now->tm_sec) << "] " 
             << to_log << std::endl;
         }
@@ -86,7 +86,7 @@ logger const *logger_concrete::log(const std::string &to_log, logger::severity s
             (*logger_stream.second.first) << "[" 
             << severity_mode.at(static_cast<int>(severity)) << "]" 
             << "[" << (now->tm_mday) << "/" << (now->tm_mon + 1) << '/' 
-            << (now->tm_year + 1900) << ' ' 
+            << (now->tm_year + 1900) << ' '
             << (now->tm_hour) << ":" << (now->tm_min) << ":" << (now->tm_sec) << "] " 
             << to_log << std::endl;
         }
