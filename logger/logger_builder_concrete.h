@@ -17,7 +17,7 @@ public:
 
     logger *construct() const override;
 
-    logger *conduct(std::string const &);
+    logger *conduct(std::string const &) override;
 
 };
 
