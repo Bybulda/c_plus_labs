@@ -1,6 +1,8 @@
 #ifndef SANDBOX_CPP_ASSOCIATIVE_CONTAINER_H
 #define SANDBOX_CPP_ASSOCIATIVE_CONTAINER_H
 #include <iostream>
+#include <list>
+
 template<
         typename tkey,
         typename tvalue>
@@ -30,10 +32,12 @@ public:
     virtual tvalue const &get(
             tkey const &key) = 0;
 
-    virtual tvalue &&remove(
+    virtual void remove(
             tkey const &key) = 0;
 
-    virtual tvalue const&find_diap(tkey const &start, tkey const &end) = 0;
+    virtual std::list<tvalue> find_diap(tkey const &start, tkey const &end) = 0;
+
+    virtual void set(tkey const& key, tvalue const&& value) = 0;
 
 //public:
 //

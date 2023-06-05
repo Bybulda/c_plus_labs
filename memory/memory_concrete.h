@@ -1,3 +1,5 @@
+#ifndef MEMORY_CONCRETE
+#define MEMORY_CONCRETE
 #include "memory.h"
 #include "../logger/logger.h"
 #include "../logger/logger_builder_concrete.h"
@@ -25,3 +27,4 @@ public:
     template<typename T>
     std::string to_str(T const &object) const noexcept;
 };
+#endif

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "b_tree.h"
 #include "../logger/logger_builder_concrete.h"
+#include "../descriptor/alloc_types.h"
 
 template<typename T>
 class t_type_holder{
@@ -57,27 +58,30 @@ int main(){
 //    t_type_holder<int> ex = t_type_holder<int>(10);
 //    std::cout << ex.get();
     logger_builder* builder = new logger_builder_concrete();
-    logger* loggs = builder->add_stream("logs.log", logger::severity::information)->construct();
-    associative_container<int, std::string>* bTree = new b_tree<int, std::string, compare<int>>(2, nullptr, loggs);
+    logger* loggs_tree = builder->add_stream("tree.log", logger::severity::information)->construct();
+    logger* loggs_alloc = builder->add_stream("alloc.logs", logger::severity::trace)->construct();
+    memory* alloc = new memory_concrete(loggs_alloc);
+//    memory* allocator = new alloc_types_descriptor(10000000, nullptr, loggs);
+    associative_container<int, std::string>* bTree = new b_tree<int, std::string, compare<int>>(2, alloc, loggs_tree);
     std::string ask = "34", abd = "12", cd = "9";
     int a = 10, b = 12, c = 9;
     compare<std::string> comp;
-    bTree->insert(1, "0");
-//    for (int i = 0; i < 25; i++) {
-//        bTree->insert(i, std::to_string(i));
+//    bTree->insert(1, "0");
+    for (int i = 0; i < 300; i++) {
+        bTree->insert(i, std::to_string(i));
+    }
+//    for (int i = 300; i < 600; ++i) {
+//        bTree->set(i - 300, std::to_string(i));
 //    }
-//    std::cout << bTree->get(a) << std::endl;
-//    dynamic_cast<b_tree<int, std::string, compare<int>>*>(bTree)->traverse_start();
+    associative_container<int, std::string>* bTree_copy = new b_tree<int, std::string, compare<int>>(std::move(*dynamic_cast<b_tree<int, std::string, compare<int>>*>(bTree)));
+    dynamic_cast<b_tree<int, std::string, compare<int>>*>(bTree)->try_iter();
+    std::cout << std::endl;
+    dynamic_cast<b_tree<int, std::string, compare<int>>*>(bTree_copy)->try_iter();
     delete(bTree);
-    delete(loggs);
+    delete(bTree_copy);
+    delete(alloc);
+    delete(loggs_tree);
+    delete(loggs_alloc);
     delete(builder);
-//    auto mem_name = reinterpret_cast<name*>(::operator new(sizeof(name)));
-//    new (mem_name) name{"apex", "legends"};
-//    mem_name->~name();
-//    ::operator delete(mem_name);
-//    auto mem_hold = reinterpret_cast<name_holder*>(::operator new(sizeof(name_holder)));
-//    auto name_m = reinterpret_cast<name*>(::operator new(sizeof(name)));
-//    new (mem_hold) name_holder{name_m};
-//    ::operator delete(mem_hold->info);
-//    ::operator delete(mem_hold);
+
 }
