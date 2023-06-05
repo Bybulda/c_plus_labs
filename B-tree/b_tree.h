@@ -754,7 +754,7 @@ void b_tree<tkey, tvalue, tkey_comparer>::btree_merge_child(node *root, int pos,
     for(int i = _t; i < 2 * _t - 1; i++) {
         y->keys_and_values[i] = z->keys_and_values[i-_t];
     }
-    y->keys_and_values[_t-1] = root->keys_and_values[pos];// k[pos]下降为y的中间节点
+    y->keys_and_values[_t-1] = root->keys_and_values[pos];
 
 
     if(z->subtrees[0] != nullptr) {
@@ -803,7 +803,6 @@ template<typename tkey, typename tvalue, typename tkey_comparer>
 void b_tree<tkey, tvalue, tkey_comparer>::btree_delete_nonone(node *root, tkey const& target)
 {
     if(root->subtrees[0] == nullptr) {
-        // 如果在叶子节点，直接删除
         int i = 0;
         while(i < root->size && comparer(target, root->keys_and_values[i]->key) > 0) i++;
         if(comparer(target, root->keys_and_values[i]->key) == 0) { // добавить сравнение
@@ -811,9 +810,6 @@ void b_tree<tkey, tvalue, tkey_comparer>::btree_delete_nonone(node *root, tkey c
                 root->keys_and_values[j-1] = root->keys_and_values[j];
             }
             root->size -= 1;
-
-//            btree_node_num-=1;
-
         } else {
             printf("target not found\n");
         }
@@ -822,28 +818,24 @@ void b_tree<tkey, tvalue, tkey_comparer>::btree_delete_nonone(node *root, tkey c
         node *y = NULL, *z = NULL;
         while(i < root->size && comparer(target, root->keys_and_values[i]->key) > 0) i++;
         if(i < root->size && comparer(target, root->keys_and_values[i]->key) == 0) {
-            // 如果在分支节点找到target
             y = root->subtrees[i];
             z = root->subtrees[i+1];
             if(y->size > _t - 1) {
-                // 如果左分支关键字多于M-1，则找到左分支的最右节点prev，替换target
-                // 并在左分支中递归删除prev,情况2（a)
+                // 2（a)
                 auto pre = btree_search_predecessor(y); // ключ
                 root->keys_and_values[i] = pre;
                 btree_delete_nonone(y, pre->key);
             } else if(z->size > _t - 1) {
-                // 如果右分支关键字多于M-1，则找到右分支的最左节点next，替换target
-                // 并在右分支中递归删除next,情况2(b)
+                // 2(b)
                 auto next = btree_search_successor(z); // ключ
                 root->keys_and_values[i] = next;
                 btree_delete_nonone(z, next->key);
             } else {
-                // 两个分支节点数都为M-1，则合并至y，并在y中递归删除target,情况2(c)
+                // 2(c)
                 btree_merge_child(root, i, y, z);
                 btree_delete(y, target);
             }
         } else {
-            // 在分支没有找到，肯定在分支的子节点中
             y = root->subtrees[i];
             if(i < root->size) {
                 z = root->subtrees[i+1];
@@ -855,19 +847,19 @@ void b_tree<tkey, tvalue, tkey_comparer>::btree_delete_nonone(node *root, tkey c
 
             if(y->size == _t - 1) {
                 if(i > 0 && p->size > _t - 1) {
-                    // 左邻接节点关键字个数大于M-1
-                    //情况3(a)
+                    // _t-1 случай справа
+                    //3(a)
                     btree_shift_to_right_child(root, i-1, p, y);
                 } else if(i < root->size && z->size > _t - 1) {
-                    // 右邻接节点关键字个数大于M-1
-                    // 情况3(b)
+                    // _t-1 случай слева
+                    // 3(b)
                     btree_shift_to_left_child(root, i, y, z);
                 } else if(i > 0) {
-                    // 情况3（c)
+                    // 3（c)
                     btree_merge_child(root, i-1, p, y); // note
                     y = p;
                 } else {
-                    // 情况3(c)
+                    // 3(c)
                     btree_merge_child(root, i, y, z);
                 }
                 btree_delete_nonone(y, target);
